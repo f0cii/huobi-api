@@ -49,15 +49,15 @@ func (c *Client) Order(symbol string, contractType string, contractCode string, 
 /*
  * Cancel 撤销订单
  */
-func (c *Client) Cancel(symbol string, orderID string, clientOrderID string) (result CancelResult, err error) {
+func (c *Client) Cancel(symbol string, orderID int64, clientOrderID int64) (result CancelResult, err error) {
 	path := "/api/v1/contract_cancel"
 	params := &url.Values{}
 	params.Add("symbol", symbol)
-	if orderID != "" {
-		params.Add("order_id", orderID)
+	if orderID > 0 {
+		params.Add("order_id", fmt.Sprint(orderID))
 	}
-	if clientOrderID != "" {
-		params.Add("client_order_id", clientOrderID)
+	if clientOrderID > 0 {
+		params.Add("client_order_id", fmt.Sprint(clientOrderID))
 	}
 	err = c.doPost(path, params, &result)
 	return
@@ -68,26 +68,26 @@ func (c *Client) Cancel(symbol string, orderID string, clientOrderID string) (re
 /*
  * OrderInfo 获取合约订单信息
  */
-func (c *Client) OrderInfo(symbol string, orderID string, clientOrderID string) (result OrderInfoResult, err error) {
+func (c *Client) OrderInfo(symbol string, orderID int64, clientOrderID int64) (result OrderInfoResult, err error) {
 	path := "/api/v1/contract_order_info"
 	params := &url.Values{}
 	params.Add("symbol", symbol)
-	if orderID != "" {
-		params.Add("order_id", orderID)
+	if orderID > 0 {
+		params.Add("order_id", fmt.Sprint(orderID))
 	}
-	if clientOrderID != "" {
-		params.Add("client_order_id", clientOrderID)
+	if clientOrderID > 0 {
+		params.Add("client_order_id", fmt.Sprint(clientOrderID))
 	}
 	err = c.doPost(path, params, &result)
 	return
 }
 
 // TODO: OrderDetail
-func (c *Client) OrderDetail(symbol string, orderID string, createdAt int64, orderType int, pageIndex int, pageSize int) (err error) {
+func (c *Client) OrderDetail(symbol string, orderID int64, createdAt int64, orderType int, pageIndex int, pageSize int) (err error) {
 	path := "/api/v1/contract_order_detail"
 	params := &url.Values{}
 	params.Add("symbol", symbol)
-	params.Add("order_id", orderID)
+	params.Add("order_id", fmt.Sprint(orderID))
 	if createdAt > 0 {
 		params.Add("created_at", fmt.Sprint(createdAt))
 	}

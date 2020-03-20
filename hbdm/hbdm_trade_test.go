@@ -13,7 +13,7 @@ func TestClient_Order(t *testing.T) {
 		1,
 		"buy",
 		"open",
-		10,
+		5,
 		"limit",
 	)
 	if err != nil {
@@ -25,8 +25,8 @@ func TestClient_Order(t *testing.T) {
 
 func TestClient_Cancel(t *testing.T) {
 	c := newTestClient()
-	orderID := "690494908993323008" // 690495528999559168
-	cancelResult, err := c.Cancel("BTC", orderID, "")
+	orderID := int64(690494908993323008) // 690495528999559168
+	cancelResult, err := c.Cancel("BTC", orderID, 0)
 	if err != nil {
 		t.Error(err)
 		return
@@ -38,8 +38,8 @@ func TestClient_OrderInfo(t *testing.T) {
 	c := newTestClient()
 	info, err := c.OrderInfo(
 		"BTC",
-		"690494908993323008",
-		"",
+		690494908993323008,
+		0,
 	)
 	if err != nil {
 		t.Error(err)
