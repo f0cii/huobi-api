@@ -23,6 +23,27 @@ func TestClient_Order(t *testing.T) {
 	t.Logf("%#v", orderResult)
 }
 
+func TestClosePosition(t *testing.T) {
+	c := newTestClient()
+	orderResult, err := c.Order(
+		"BTC",
+		"this_week",
+		"",
+		0,
+		6000.0, // Buy price must be lower than 6795.94 USD. Sell price must exceed 6294.48 USD.
+		1,
+		"buy",
+		"close",
+		5,
+		"limit",
+	)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("%#v", orderResult)
+}
+
 func TestClient_Cancel(t *testing.T) {
 	c := newTestClient()
 	orderID := int64(690494908993323008) // 690495528999559168
