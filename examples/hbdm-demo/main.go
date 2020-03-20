@@ -1,17 +1,3 @@
-# huobi-api
-Huobi api for Golang.
-
-[![](https://img.shields.io/badge/api-huobi-blue.svg)](https://huobiapi.github.io/docs/dm/v1/cn/)
-
-An implementation of [Huobi-API](https://huobiapi.github.io/docs/dm/v1/cn/).
-
-## Installation
-```
-go get github.com/frankrap/huobi-api
-```
-
-## Usage
-```go
 package main
 
 import (
@@ -65,4 +51,3 @@ func main() {
 	}
 	log.Printf("%#v", orders)
 }
-```
