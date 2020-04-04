@@ -50,7 +50,7 @@ func (o *Order) OrderPriceType() string {
 		case 4:
 			return "lightning"
 		case 5:
-			return "5"
+			return "trigger_order"
 		case 6:
 			return "post_only"
 		case 7:
