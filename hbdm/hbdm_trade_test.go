@@ -59,7 +59,7 @@ func TestClient_OrderInfo(t *testing.T) {
 	c := newTestClient()
 	info, err := c.OrderInfo(
 		"BTC",
-		690494908993323008,
+		696107957142069248,
 		0,
 	)
 	if err != nil {
@@ -71,7 +71,11 @@ func TestClient_OrderInfo(t *testing.T) {
 
 func TestClient_GetOpenOrders(t *testing.T) {
 	c := newTestClient()
-	ordersResult, err := c.GetOpenOrders("BTC", 0, 0)
+	ordersResult, err := c.GetOpenOrders(
+		"BTC",
+		0,
+		0,
+	)
 	if err != nil {
 		t.Error(err)
 		return
@@ -96,7 +100,11 @@ func TestClient_GetHisOrders(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	t.Logf("%#v", ordersResult)
+	//t.Logf("%#v", ordersResult)
+
+	for _, v := range ordersResult.Data.Orders {
+		t.Logf("%#v", v)
+	}
 }
 
 func TestClient_LightningClosePosition(t *testing.T) {
