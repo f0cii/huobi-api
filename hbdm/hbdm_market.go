@@ -29,7 +29,7 @@ func (c *Client) GetContractInfo(symbol, contractType, contractCode string) (res
 	if contractCode != "" {
 		params.Add("contractCode", contractCode)
 	}
-	err = c.doGet(path, params, &result)
+	_, err = c.doGet(path, params, &result)
 	return
 }
 
@@ -40,7 +40,7 @@ func (c *Client) GetContractIndex(symbol string) (result ContractIndexResult, er
 	path := "/api/v1/contract_index"
 	params := &url.Values{}
 	params.Add("symbol", symbol)
-	err = c.doGet(path, params, &result)
+	_, err = c.doGet(path, params, &result)
 	return
 }
 
@@ -58,7 +58,7 @@ func (c *Client) GetMarketDepth(symbol string, _type string) (result MarketDepth
 	params := &url.Values{}
 	params.Add("symbol", symbol)
 	params.Add("type", _type)
-	err = c.doGet(path, params, &result)
+	_, err = c.doGet(path, params, &result)
 	return
 }
 
@@ -83,7 +83,7 @@ func (c *Client) GetKLine(symbol string, period string, size int, from int64, to
 	if to != 0 {
 		params.Add("to", fmt.Sprintf("%v", to))
 	}
-	err = c.doGet(path, params, &result)
+	_, err = c.doGet(path, params, &result)
 	//log.Printf("%v", string(resp))
 	return
 }

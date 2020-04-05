@@ -11,18 +11,18 @@ func (c *Client) GetAccountInfo(symbol string) (result AccountInfoResult, err er
 	if symbol != "" {
 		params.Add("symbol", symbol)
 	}
-	err = c.doPost(path, params, &result)
+	_, err = c.doPost(path, params, &result)
 	return
 }
 
-// GetAccountInfo 获取用户账户信息
+// GetPositionInfo 用户持仓信息
 func (c *Client) GetPositionInfo(symbol string) (result PositionInfoResult, err error) {
 	path := "/api/v1/contract_position_info"
 	params := &url.Values{}
 	if symbol != "" {
 		params.Add("symbol", symbol)
 	}
-	err = c.doPost(path, params, &result)
+	_, err = c.doPost(path, params, &result)
 	return
 }
 

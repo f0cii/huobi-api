@@ -40,7 +40,7 @@ func (c *Client) Order(symbol string, contractType string, contractCode string, 
 	params.Add("offset", offset)
 	params.Add("lever_rate", fmt.Sprint(leverRate))
 	params.Add("order_price_type", orderPriceType)
-	err = c.doPost(path, params, &result)
+	_, err = c.doPost(path, params, &result)
 	return
 }
 
@@ -59,7 +59,7 @@ func (c *Client) Cancel(symbol string, orderID int64, clientOrderID int64) (resu
 	if clientOrderID > 0 {
 		params.Add("client_order_id", fmt.Sprint(clientOrderID))
 	}
-	err = c.doPost(path, params, &result)
+	_, err = c.doPost(path, params, &result)
 	return
 }
 
@@ -78,7 +78,7 @@ func (c *Client) OrderInfo(symbol string, orderID int64, clientOrderID int64) (r
 	if clientOrderID > 0 {
 		params.Add("client_order_id", fmt.Sprint(clientOrderID))
 	}
-	err = c.doPost(path, params, &result)
+	_, err = c.doPost(path, params, &result)
 	return
 }
 
@@ -100,7 +100,7 @@ func (c *Client) OrderDetail(symbol string, orderID int64, createdAt int64, orde
 	if pageSize > 0 {
 		params.Add("page_size", fmt.Sprint(pageSize))
 	}
-	err = c.doPost(path, params, nil)
+	_, err = c.doPost(path, params, nil)
 	return
 }
 
@@ -116,7 +116,7 @@ func (c *Client) GetOpenOrders(symbol string, pageIndex int, pageSize int) (resu
 	if pageSize > 0 {
 		params.Add("page_size", fmt.Sprint(pageSize))
 	}
-	err = c.doPost(path, params, &result)
+	_, err = c.doPost(path, params, &result)
 	return
 }
 
@@ -142,7 +142,7 @@ func (c *Client) GetHisOrders(symbol string, tradeType int, _type int, status in
 	if orderType != "" {
 		params.Add("order_type", orderType)
 	}
-	err = c.doPost(path, params, &result)
+	_, err = c.doPost(path, params, &result)
 	return
 }
 
@@ -167,7 +167,7 @@ func (c *Client) LightningClosePosition(symbol string, contractType string, cont
 	if orderPriceType != "" {
 		params.Add("order_price_type", orderPriceType)
 	}
-	err = c.doPost(path, params, &result)
+	_, err = c.doPost(path, params, &result)
 	return
 }
 

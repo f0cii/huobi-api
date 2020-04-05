@@ -1,9 +1,9 @@
 # huobi-api
-Huobi api for Golang.
+Huobi api for Golang. 火币交割合约和永续合约接口.
 
 [![](https://img.shields.io/badge/api-huobi-blue.svg)](https://huobiapi.github.io/docs/dm/v1/cn/)
 
-An implementation of [Huobi-API](https://huobiapi.github.io/docs/dm/v1/cn/).
+An implementation of [Huobi-DM API](https://huobiapi.github.io/docs/dm/v1/cn/) and [Huobi-DM-Swap API](https://docs.huobigroup.com/docs/coin_margined_swap/v1/cn/).
 
 ## Installation
 ```

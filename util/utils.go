@@ -1,4 +1,4 @@
-package hbdm
+package util
 
 import (
 	"crypto/hmac"
