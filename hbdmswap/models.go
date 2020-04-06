@@ -24,9 +24,11 @@ type AccountInfo struct {
 }
 
 type AccountInfoResult struct {
-	Status string        `json:"status"` // "ok" , "error"
-	Data   []AccountInfo `json:"data"`
-	Ts     int64         `json:"ts"`
+	Status  string        `json:"status"` // "ok" , "error"
+	ErrCode int           `json:"err_code"`
+	ErrMsg  string        `json:"err_msg"`
+	Data    []AccountInfo `json:"data"`
+	Ts      int64         `json:"ts"`
 }
 
 type Position struct {
@@ -47,9 +49,11 @@ type Position struct {
 }
 
 type PositionInfoResult struct {
-	Status string     `json:"status"`
-	Data   []Position `json:"data"`
-	Ts     int64      `json:"ts"`
+	Status  string     `json:"status"`
+	ErrCode int        `json:"err_code"`
+	ErrMsg  string     `json:"err_msg"`
+	Data    []Position `json:"data"`
+	Ts      int64      `json:"ts"`
 }
 
 type Tick struct {
@@ -63,10 +67,12 @@ type Tick struct {
 }
 
 type MarketDepthResult struct {
-	Ch     string `json:"ch"`
-	Status string `json:"status"`
-	Tick   Tick   `json:"tick"`
-	Ts     int64  `json:"ts"`
+	Ch      string `json:"ch"`
+	Status  string `json:"status"`
+	ErrCode int    `json:"err_code"`
+	ErrMsg  string `json:"err_msg"`
+	Tick    Tick   `json:"tick"`
+	Ts      int64  `json:"ts"`
 }
 
 type KLine struct {
