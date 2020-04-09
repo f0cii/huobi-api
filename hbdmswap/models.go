@@ -87,10 +87,12 @@ type KLine struct {
 }
 
 type KLineResult struct {
-	Ch     string  `json:"ch"`
-	Data   []KLine `json:"data"`
-	Status string  `json:"status"`
-	Ts     int64   `json:"ts"`
+	Ch      string  `json:"ch"`
+	Data    []KLine `json:"data"`
+	Status  string  `json:"status"`
+	ErrCode int     `json:"err_code"`
+	ErrMsg  string  `json:"err_msg"`
+	Ts      int64   `json:"ts"`
 }
 
 type OrderData struct {
