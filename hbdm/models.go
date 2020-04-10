@@ -1,37 +1,37 @@
 package hbdm
 
 import (
-	"encoding/json"
+	sjson "encoding/json"
 	"fmt"
 	"strconv"
 )
 
 type Order struct {
-	Symbol            string          `json:"symbol"`
-	ContractCode      string          `json:"contract_code"`
-	ContractType      string          `json:"contract_type"`
-	Volume            float64         `json:"volume"`
-	Price             float64         `json:"price"`
-	OrderPriceTypeRaw json.RawMessage `json:"order_price_type"` // 1限价单，3对手价，4闪电平仓，5计划委托，6post_only
-	OrderType         int             `json:"order_type"`
-	Direction         string          `json:"direction"`
-	Offset            string          `json:"offset"`
-	LeverRate         int             `json:"lever_rate"`
-	OrderID           int64           `json:"order_id"`
-	ClientOrderID     string          `json:"client_order_id"`
-	CreatedAt         int64           `json:"created_at"`
-	TradeVolume       float64         `json:"trade_volume"`
-	TradeTurnover     float64         `json:"trade_turnover"`
-	Fee               float64         `json:"fee"`
-	TradeAvgPrice     float64         `json:"trade_avg_price"`
-	MarginFrozen      float64         `json:"margin_frozen"`
-	Profit            float64         `json:"profit"`
-	Status            int             `json:"status"`
-	OrderSource       string          `json:"order_source"`
-	OrderIDStr        string          `json:"order_id_str"`
-	FeeAsset          string          `json:"fee_asset"`
-	LiquidationType   string          `json:"liquidation_type"`
-	CreateDate        int64           `json:"create_date"`
+	Symbol            string           `json:"symbol"`
+	ContractCode      string           `json:"contract_code"`
+	ContractType      string           `json:"contract_type"`
+	Volume            float64          `json:"volume"`
+	Price             float64          `json:"price"`
+	OrderPriceTypeRaw sjson.RawMessage `json:"order_price_type"` // 1限价单，3对手价，4闪电平仓，5计划委托，6post_only
+	OrderType         int              `json:"order_type"`
+	Direction         string           `json:"direction"`
+	Offset            string           `json:"offset"`
+	LeverRate         int              `json:"lever_rate"`
+	OrderID           int64            `json:"order_id"`
+	ClientOrderID     string           `json:"client_order_id"`
+	CreatedAt         int64            `json:"created_at"`
+	TradeVolume       float64          `json:"trade_volume"`
+	TradeTurnover     float64          `json:"trade_turnover"`
+	Fee               float64          `json:"fee"`
+	TradeAvgPrice     float64          `json:"trade_avg_price"`
+	MarginFrozen      float64          `json:"margin_frozen"`
+	Profit            float64          `json:"profit"`
+	Status            int              `json:"status"`
+	OrderSource       string           `json:"order_source"`
+	OrderIDStr        string           `json:"order_id_str"`
+	FeeAsset          string           `json:"fee_asset"`
+	LiquidationType   string           `json:"liquidation_type"`
+	CreateDate        int64            `json:"create_date"`
 }
 
 func (o *Order) OrderPriceType() string {
@@ -275,4 +275,58 @@ type LightningClosePositionResult struct {
 	ErrMsg  string    `json:"err_msg"`
 	Data    OrderData `json:"data"`
 	Ts      int64     `json:"ts"`
+}
+
+type WSTickerTick struct {
+	ID     int64   `json:"id"`
+	MrID   int64   `json:"mrid"`
+	Open   float64 `json:"open"`
+	Close  float64 `json:"close"`
+	High   float64 `json:"high"`
+	Low    float64 `json:"low"`
+	Amount float64 `json:"amount"`
+	Vol    float64 `json:"vol"`
+	Count  int64   `json:"count"`
+}
+
+type WSTicker struct {
+	Ch   string       `json:"ch"`
+	Ts   int64        `json:"ts"`
+	Tick WSTickerTick `json:"tick"`
+}
+
+type WSTick struct {
+	MrID    int64       `json:"mrid"`
+	ID      int         `json:"id"`
+	Bids    [][]float64 `json:"bids"`
+	Asks    [][]float64 `json:"asks"`
+	Ts      int64       `json:"ts"`
+	Version int         `json:"version"`
+	Ch      string      `json:"ch"`
+}
+
+type WSDepth struct {
+	Ch   string `json:"ch"`
+	Ts   int64  `json:"ts"`
+	Tick Tick   `json:"tick"`
+}
+
+type WSTradeItem struct {
+	Amount    int     `json:"amount"`
+	Ts        int64   `json:"ts"`
+	ID        int64   `json:"id"`
+	Price     float64 `json:"price"`
+	Direction string  `json:"direction"`
+}
+
+type WSTradeTick struct {
+	ID   int64         `json:"id"`
+	Ts   int64         `json:"ts"`
+	Data []WSTradeItem `json:"data"`
+}
+
+type WSTrade struct {
+	Ch   string      `json:"ch"`
+	Ts   int64       `json:"ts"`
+	Tick WSTradeTick `json:"tick"`
 }

@@ -22,8 +22,7 @@ func main() {
 	client := hbdm.NewClient(apiParams)
 
 	client.GetAccountInfo("BTC")
-	orderResult, err := client.Order(
-		"BTC",
+	orderResult, err := client.Order("BTC",
 		"this_week",
 		"",
 		0,
@@ -32,8 +31,7 @@ func main() {
 		"buy",
 		"open",
 		10,
-		"limit",
-	)
+		"limit")
 	if err != nil {
 		log.Fatal(err)
 		return

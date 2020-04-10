@@ -1,0 +1,232 @@
+package hbdmswap
+
+// 接口文档
+// https://huobiapi.github.io/docs/coin_margined_swap/v1/cn/#websocket
+
+import (
+	"context"
+	"fmt"
+	"github.com/chuckpreslar/emission"
+	"github.com/frankrap/huobi-api/util"
+	"github.com/recws-org/recws"
+	"github.com/tidwall/gjson"
+	"log"
+	"strings"
+	"sync"
+	"time"
+)
+
+type WS struct {
+	sync.RWMutex
+
+	ctx    context.Context
+	cancel context.CancelFunc
+	wsConn recws.RecConn
+
+	accessKey     string
+	secretKey     string
+	emitter       *emission.Emitter
+	subscriptions map[string]interface{}
+
+	tickerCallback func(trade *WSTicker)
+	depthCallback  func(depth *WSDepth)
+	tradeCallback  func(trade *WSTrade)
+}
+
+// SubscribeTicker 订阅 Market Ticker 数据
+// id: 订阅的编号
+// symbol: BTC_CQ
+func (ws *WS) SubscribeTicker(id string, symbol string) {
+	ch := map[string]interface{}{
+		"id":  id,
+		"sub": fmt.Sprintf("market.%s.detail", symbol)}
+	ws.Subscribe(id, ch)
+}
+
+// SubscribeDepth 订阅 Market Depth 数据
+// id: 订阅的编号
+// symbol: BTC_CQ
+func (ws *WS) SubscribeDepth(id string, symbol string) {
+	ch := map[string]interface{}{
+		"id":  id,
+		"sub": fmt.Sprintf("market.%s.depth.step0", symbol)}
+	ws.Subscribe(id, ch)
+}
+
+// SubscribeTrade 订阅 Market Trade 数据
+// id: 订阅的编号
+// symbol: BTC_CQ
+func (ws *WS) SubscribeTrade(id string, symbol string) {
+	ch := map[string]interface{}{
+		"id":  id,
+		"sub": fmt.Sprintf("market.%s.trade.detail", symbol)}
+	ws.Subscribe(id, ch)
+}
+
+// Subscribe 订阅
+func (ws *WS) Subscribe(id string, ch map[string]interface{}) error {
+	ws.Lock()
+	defer ws.Unlock()
+
+	ws.subscriptions[id] = ch
+	ws.sendWSMessage(ch)
+	return nil
+}
+
+func (ws *WS) SetTickerCallback(callback func(ticker *WSTicker)) {
+	ws.tickerCallback = callback
+}
+
+func (ws *WS) SetDepthCallback(callback func(depth *WSDepth)) {
+	ws.depthCallback = callback
+}
+
+func (ws *WS) SetTradeCallback(callback func(trade *WSTrade)) {
+	ws.tradeCallback = callback
+}
+
+func (ws *WS) Unsubscribe(id string) error {
+	ws.Lock()
+	defer ws.Unlock()
+
+	if _, ok := ws.subscriptions[id]; ok {
+		delete(ws.subscriptions, id)
+	}
+	return nil
+}
+
+func (ws *WS) sendWSMessage(msg interface{}) error {
+	return ws.wsConn.WriteJSON(msg)
+}
+
+func (ws *WS) Start() {
+	go ws.run()
+}
+
+func (ws *WS) run() {
+	ctx := context.Background()
+	for {
+		select {
+		case <-ctx.Done():
+			go ws.wsConn.Close()
+			log.Printf("Websocket closed %s", ws.wsConn.GetURL())
+			return
+		default:
+			messageType, msg, err := ws.wsConn.ReadMessage()
+			if err != nil {
+				log.Printf("Read error: %v", err)
+				time.Sleep(100 * time.Millisecond)
+				continue
+			}
+
+			msg, err = util.GzipUncompress(msg)
+			if err != nil {
+				continue
+			}
+
+			ws.handleMsg(messageType, msg)
+		}
+	}
+}
+
+func (ws *WS) handleMsg(messageType int, msg []byte) {
+	ret := gjson.ParseBytes(msg)
+
+	//fmt.Printf("%v", string(msg))
+
+	if pingRet := ret.Get("ping"); pingRet.Exists() {
+		// 心跳
+		ping := pingRet.Int()
+		ws.handlePing(ping)
+		return
+	}
+
+	// 订阅成功返回消息
+	// {"id":"depth_1","subbed":"market.BTC_CQ.depth.step0","ts":1586498957314,"status":"ok"}
+
+	if chRet := ret.Get("ch"); chRet.Exists() {
+		// market.BTC_CQ.depth.step0
+		ch := chRet.String()
+		if strings.HasPrefix(ch, "market") {
+			if strings.Contains(ch, ".depth") {
+				var depth WSDepth
+				err := json.Unmarshal(msg, &depth)
+				if err != nil {
+					log.Printf("%v", err)
+					return
+				}
+
+				if ws.depthCallback != nil {
+					ws.depthCallback(&depth)
+				}
+			} else if strings.HasSuffix(ch, ".trade.detail") {
+				//log.Printf("%v", string(msg))
+				var trade WSTrade
+				err := json.Unmarshal(msg, &trade)
+				if err != nil {
+					log.Printf("%v", err)
+					return
+				}
+
+				if ws.tradeCallback != nil {
+					ws.tradeCallback(&trade)
+				}
+			} else if strings.HasSuffix(ch, ".detail") {
+				var ticker WSTicker
+				err := json.Unmarshal(msg, &ticker)
+				if err != nil {
+					log.Printf("%v", err)
+					return
+				}
+
+				if ws.tickerCallback != nil {
+					ws.tickerCallback(&ticker)
+				}
+			} else {
+				log.Printf("%v", string(msg))
+			}
+		}
+		return
+	}
+}
+
+func (ws *WS) handlePing(ping int64) {
+	pong := struct {
+		Pong int64 `json:"pong"`
+	}{ping}
+
+	err := ws.sendWSMessage(pong)
+	if err != nil {
+		log.Printf("Send pong error: %v", err)
+	}
+}
+
+func (ws *WS) subscribeHandler() error {
+	log.Printf("subscribeHandler")
+	ws.Lock()
+	defer ws.Unlock()
+
+	for _, v := range ws.subscriptions {
+		ws.sendWSMessage(v)
+	}
+	return nil
+}
+
+// NewWS 创建 WS
+// wsURL:
+// 正式地址 wss://api.hbdm.com/swap-ws
+// 开发地址 wss://api.btcgateway.pro/swap-ws
+func NewWS(wsURL string, accessKey string, secretKey string) *WS {
+	ws := &WS{
+		accessKey:     accessKey,
+		secretKey:     secretKey,
+		subscriptions: make(map[string]interface{}),
+	}
+	ws.ctx, ws.cancel = context.WithCancel(context.Background())
+	ws.wsConn = recws.RecConn{
+		KeepAliveTimeout: 10 * time.Second,
+	}
+	ws.wsConn.SubscribeHandler = ws.subscribeHandler
+	ws.wsConn.Dial(wsURL, nil)
+	return ws
+}

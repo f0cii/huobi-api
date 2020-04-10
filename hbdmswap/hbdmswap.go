@@ -1,7 +1,6 @@
 package hbdmswap
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/frankrap/huobi-api/util"
 	"log"
