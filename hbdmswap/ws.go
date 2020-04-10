@@ -6,7 +6,6 @@ package hbdmswap
 import (
 	"context"
 	"fmt"
-	"github.com/chuckpreslar/emission"
 	"github.com/frankrap/huobi-api/util"
 	"github.com/recws-org/recws"
 	"github.com/tidwall/gjson"
@@ -25,7 +24,6 @@ type WS struct {
 
 	accessKey     string
 	secretKey     string
-	emitter       *emission.Emitter
 	subscriptions map[string]interface{}
 
 	tickerCallback func(trade *WSTicker)
