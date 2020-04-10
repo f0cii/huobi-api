@@ -4,8 +4,7 @@ import "testing"
 
 func TestClient_Order(t *testing.T) {
 	c := newTestClient()
-	orderResult, err := c.Order(
-		"BTC",
+	orderResult, err := c.Order("BTC",
 		"this_week",
 		"",
 		0,
@@ -14,8 +13,7 @@ func TestClient_Order(t *testing.T) {
 		"buy",
 		"open",
 		5,
-		"limit",
-	)
+		"limit")
 	if err != nil {
 		t.Error(err)
 		return
@@ -25,8 +23,7 @@ func TestClient_Order(t *testing.T) {
 
 func TestClosePosition(t *testing.T) {
 	c := newTestClient()
-	orderResult, err := c.Order(
-		"BTC",
+	orderResult, err := c.Order("BTC",
 		"this_week",
 		"",
 		0,
@@ -35,8 +32,7 @@ func TestClosePosition(t *testing.T) {
 		"buy",
 		"close",
 		5,
-		"limit",
-	)
+		"limit")
 	if err != nil {
 		t.Error(err)
 		return
@@ -47,7 +43,8 @@ func TestClosePosition(t *testing.T) {
 func TestClient_Cancel(t *testing.T) {
 	c := newTestClient()
 	orderID := int64(690494908993323008) // 690495528999559168
-	cancelResult, err := c.Cancel("BTC", orderID, 0)
+	cancelResult, err := c.Cancel("BTC",
+		orderID, 0)
 	if err != nil {
 		t.Error(err)
 		return
@@ -57,11 +54,9 @@ func TestClient_Cancel(t *testing.T) {
 
 func TestClient_OrderInfo(t *testing.T) {
 	c := newTestClient()
-	info, err := c.OrderInfo(
-		"BTC",
+	info, err := c.OrderInfo("BTC",
 		696107957142069248,
-		0,
-	)
+		0)
 	if err != nil {
 		t.Error(err)
 		return
@@ -71,11 +66,9 @@ func TestClient_OrderInfo(t *testing.T) {
 
 func TestClient_GetOpenOrders(t *testing.T) {
 	c := newTestClient()
-	ordersResult, err := c.GetOpenOrders(
-		"BTC",
+	ordersResult, err := c.GetOpenOrders("BTC",
 		0,
-		0,
-	)
+		0)
 	if err != nil {
 		t.Error(err)
 		return
@@ -85,8 +78,7 @@ func TestClient_GetOpenOrders(t *testing.T) {
 
 func TestClient_GetHisOrders(t *testing.T) {
 	c := newTestClient()
-	ordersResult, err := c.GetHisOrders(
-		"BTC",
+	ordersResult, err := c.GetHisOrders("BTC",
 		0,
 		1,
 		0,
@@ -94,8 +86,7 @@ func TestClient_GetHisOrders(t *testing.T) {
 		1,
 		50,
 		"",
-		"1",
-	)
+		"1")
 	if err != nil {
 		t.Error(err)
 		return
@@ -109,15 +100,13 @@ func TestClient_GetHisOrders(t *testing.T) {
 
 func TestClient_LightningClosePosition(t *testing.T) {
 	c := newTestClient()
-	orderResult, err := c.LightningClosePosition(
-		"BTC",
+	orderResult, err := c.LightningClosePosition("BTC",
 		"this_week",
 		"",
 		1,
 		"sell",
 		0,
-		"",
-	)
+		"")
 	if err != nil {
 		t.Error(err)
 		return

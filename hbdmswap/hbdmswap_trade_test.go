@@ -4,16 +4,14 @@ import "testing"
 
 func TestClient_Order(t *testing.T) {
 	c := newTestClient()
-	orderResult, err := c.Order(
-		"BTC-USD",
+	orderResult, err := c.Order("BTC-USD",
 		0,
 		3000,
 		1,
 		"buy",
 		"open",
 		125,
-		"limit",
-	)
+		"limit")
 	if err != nil {
 		t.Error(err)
 		return

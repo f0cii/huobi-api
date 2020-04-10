@@ -28,7 +28,8 @@ func TestClient_GetContractIndex(t *testing.T) {
 
 func TestClient_GetMarketDepth(t *testing.T) {
 	c := newTestClient()
-	depth, err := c.GetMarketDepth("BTC_CQ", "step5")
+	depth, err := c.GetMarketDepth("BTC_CQ",
+		"step5")
 	if err != nil {
 		t.Error(err)
 		return
