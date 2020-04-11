@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/frankrap/huobi-api/util"
-	"github.com/google/uuid"
+	"github.com/lithammer/shortuuid/v3"
 	"github.com/recws-org/recws"
 	"github.com/tidwall/gjson"
 	"log"
@@ -228,7 +228,7 @@ func (ws *WS) handlePing(ping int64) {
 func NewWS(wsURL string, accessKey string, secretKey string) *WS {
 	ws := &WS{
 		wsURL:         wsURL,
-		cid:           uuid.New().String(),
+		cid:           shortuuid.New(),
 		accessKey:     accessKey,
 		secretKey:     secretKey,
 		subscriptions: make(map[string]interface{}),
