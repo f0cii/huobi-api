@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// WS WebSocket 市场行情接口
 type WS struct {
 	sync.RWMutex
 
@@ -22,6 +23,7 @@ type WS struct {
 	cancel context.CancelFunc
 	wsConn recws.RecConn
 
+	wsURL         string
 	accessKey     string
 	secretKey     string
 	subscriptions map[string]interface{}
@@ -93,11 +95,23 @@ func (ws *WS) Unsubscribe(id string) error {
 	return nil
 }
 
+func (ws *WS) subscribeHandler() error {
+	log.Printf("subscribeHandler")
+	ws.Lock()
+	defer ws.Unlock()
+
+	for _, v := range ws.subscriptions {
+		ws.sendWSMessage(v)
+	}
+	return nil
+}
+
 func (ws *WS) sendWSMessage(msg interface{}) error {
 	return ws.wsConn.WriteJSON(msg)
 }
 
 func (ws *WS) Start() {
+	ws.wsConn.Dial(ws.wsURL, nil)
 	go ws.run()
 }
 
@@ -132,9 +146,9 @@ func (ws *WS) handleMsg(messageType int, msg []byte) {
 
 	//fmt.Printf("%v", string(msg))
 
-	if pingRet := ret.Get("ping"); pingRet.Exists() {
+	if pingValue := ret.Get("ping"); pingValue.Exists() {
 		// 心跳
-		ping := pingRet.Int()
+		ping := pingValue.Int()
 		ws.handlePing(ping)
 		return
 	}
@@ -142,9 +156,9 @@ func (ws *WS) handleMsg(messageType int, msg []byte) {
 	// 订阅成功返回消息
 	// {"id":"depth_1","subbed":"market.BTC_CQ.depth.step0","ts":1586498957314,"status":"ok"}
 
-	if chRet := ret.Get("ch"); chRet.Exists() {
+	if chValue := ret.Get("ch"); chValue.Exists() {
 		// market.BTC_CQ.depth.step0
-		ch := chRet.String()
+		ch := chValue.String()
 		if strings.HasPrefix(ch, "market") {
 			if strings.Contains(ch, ".depth") {
 				var depth WSDepth
@@ -199,23 +213,13 @@ func (ws *WS) handlePing(ping int64) {
 	}
 }
 
-func (ws *WS) subscribeHandler() error {
-	log.Printf("subscribeHandler")
-	ws.Lock()
-	defer ws.Unlock()
-
-	for _, v := range ws.subscriptions {
-		ws.sendWSMessage(v)
-	}
-	return nil
-}
-
 // NewWS 创建 WS
 // wsURL:
 // 正式地址 wss://api.hbdm.com/swap-ws
 // 开发地址 wss://api.btcgateway.pro/swap-ws
 func NewWS(wsURL string, accessKey string, secretKey string) *WS {
 	ws := &WS{
+		wsURL:         wsURL,
 		accessKey:     accessKey,
 		secretKey:     secretKey,
 		subscriptions: make(map[string]interface{}),
@@ -225,6 +229,5 @@ func NewWS(wsURL string, accessKey string, secretKey string) *WS {
 		KeepAliveTimeout: 10 * time.Second,
 	}
 	ws.wsConn.SubscribeHandler = ws.subscribeHandler
-	ws.wsConn.Dial(wsURL, nil)
 	return ws
 }

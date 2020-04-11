@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/frankrap/huobi-api/util"
+	"github.com/google/uuid"
 	"github.com/recws-org/recws"
 	"github.com/tidwall/gjson"
 	"log"
@@ -15,6 +16,7 @@ import (
 	"time"
 )
 
+// WS WebSocket 市场行情接口
 type WS struct {
 	sync.RWMutex
 
@@ -22,6 +24,8 @@ type WS struct {
 	cancel context.CancelFunc
 	wsConn recws.RecConn
 
+	wsURL         string // Public
+	cid           string // 客户端请求唯一ID
 	accessKey     string
 	secretKey     string
 	subscriptions map[string]interface{}
@@ -67,8 +71,7 @@ func (ws *WS) Subscribe(id string, ch map[string]interface{}) error {
 	defer ws.Unlock()
 
 	ws.subscriptions[id] = ch
-	ws.sendWSMessage(ch)
-	return nil
+	return ws.sendWSMessage(ch)
 }
 
 func (ws *WS) SetTickerCallback(callback func(ticker *WSTicker)) {
@@ -83,6 +86,7 @@ func (ws *WS) SetTradeCallback(callback func(trade *WSTrade)) {
 	ws.tradeCallback = callback
 }
 
+// Unsubscribe 取消订阅
 func (ws *WS) Unsubscribe(id string) error {
 	ws.Lock()
 	defer ws.Unlock()
@@ -93,11 +97,27 @@ func (ws *WS) Unsubscribe(id string) error {
 	return nil
 }
 
+func (ws *WS) subscribeHandler() error {
+	//log.Printf("subscribeHandler")
+	ws.Lock()
+	defer ws.Unlock()
+
+	for _, v := range ws.subscriptions {
+		//log.Printf("sub: %#v", v)
+		err := ws.sendWSMessage(v)
+		if err != nil {
+			log.Printf("%v", err)
+		}
+	}
+	return nil
+}
+
 func (ws *WS) sendWSMessage(msg interface{}) error {
 	return ws.wsConn.WriteJSON(msg)
 }
 
 func (ws *WS) Start() {
+	ws.wsConn.Dial(ws.wsURL, nil)
 	go ws.run()
 }
 
@@ -130,11 +150,11 @@ func (ws *WS) run() {
 func (ws *WS) handleMsg(messageType int, msg []byte) {
 	ret := gjson.ParseBytes(msg)
 
-	//fmt.Printf("%v", string(msg))
+	fmt.Printf("%v", string(msg))
 
-	if pingRet := ret.Get("ping"); pingRet.Exists() {
+	if pingValue := ret.Get("ping"); pingValue.Exists() {
 		// 心跳
-		ping := pingRet.Int()
+		ping := pingValue.Int()
 		ws.handlePing(ping)
 		return
 	}
@@ -142,9 +162,9 @@ func (ws *WS) handleMsg(messageType int, msg []byte) {
 	// 订阅成功返回消息
 	// {"id":"depth_1","subbed":"market.BTC_CQ.depth.step0","ts":1586498957314,"status":"ok"}
 
-	if chRet := ret.Get("ch"); chRet.Exists() {
+	if chValue := ret.Get("ch"); chValue.Exists() {
 		// market.BTC_CQ.depth.step0
-		ch := chRet.String()
+		ch := chValue.String()
 		if strings.HasPrefix(ch, "market") {
 			if strings.Contains(ch, ".depth") {
 				var depth WSDepth
@@ -183,6 +203,8 @@ func (ws *WS) handleMsg(messageType int, msg []byte) {
 			} else {
 				log.Printf("%v", string(msg))
 			}
+		} else {
+			log.Printf("msg: %v", string(msg))
 		}
 		return
 	}
@@ -199,23 +221,14 @@ func (ws *WS) handlePing(ping int64) {
 	}
 }
 
-func (ws *WS) subscribeHandler() error {
-	log.Printf("subscribeHandler")
-	ws.Lock()
-	defer ws.Unlock()
-
-	for _, v := range ws.subscriptions {
-		ws.sendWSMessage(v)
-	}
-	return nil
-}
-
 // NewWS 创建 WS
 // wsURL:
 // 正式地址 wss://api.hbdm.com/ws
 // 开发地址 wss://api.btcgateway.pro/ws
 func NewWS(wsURL string, accessKey string, secretKey string) *WS {
 	ws := &WS{
+		wsURL:         wsURL,
+		cid:           uuid.New().String(),
 		accessKey:     accessKey,
 		secretKey:     secretKey,
 		subscriptions: make(map[string]interface{}),
@@ -225,6 +238,5 @@ func NewWS(wsURL string, accessKey string, secretKey string) *WS {
 		KeepAliveTimeout: 10 * time.Second,
 	}
 	ws.wsConn.SubscribeHandler = ws.subscribeHandler
-	ws.wsConn.Dial(wsURL, nil)
 	return ws
 }

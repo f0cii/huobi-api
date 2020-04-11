@@ -330,3 +330,121 @@ type WSTrade struct {
 	Ts   int64       `json:"ts"`
 	Tick WSTradeTick `json:"tick"`
 }
+
+type WSOrder struct {
+	Op              string      `json:"op"`
+	Topic           string      `json:"topic"`
+	Ts              int64       `json:"ts"`
+	Symbol          string      `json:"symbol"`
+	ContractType    string      `json:"contract_type"`
+	ContractCode    string      `json:"contract_code"`
+	Volume          float64     `json:"volume"`
+	Price           float64     `json:"price"`
+	OrderPriceType  string      `json:"order_price_type"`
+	Direction       string      `json:"direction"`
+	Offset          string      `json:"offset"`
+	Status          int         `json:"status"`
+	LeverRate       float64     `json:"lever_rate"`
+	OrderID         int64       `json:"order_id"`
+	OrderIDStr      string      `json:"order_id_str"`
+	ClientOrderID   int64       `json:"client_order_id"`
+	OrderSource     string      `json:"order_source"`
+	OrderType       int         `json:"order_type"`
+	CreatedAt       int64       `json:"created_at"`
+	TradeVolume     float64     `json:"trade_volume"`
+	TradeTurnover   float64     `json:"trade_turnover"`
+	Fee             float64     `json:"fee"`
+	TradeAvgPrice   float64     `json:"trade_avg_price"`
+	MarginFrozen    float64     `json:"margin_frozen"`
+	Profit          float64     `json:"profit"`
+	Trade           []WSMyTrade `json:"trade"`
+	LiquidationType string      `json:"liquidation_type"`
+}
+
+type WSMyTrade struct {
+	ID            string  `json:"id"`
+	TradeID       int64   `json:"trade_id"`
+	TradeVolume   float64 `json:"trade_volume"`
+	TradePrice    float64 `json:"trade_price"`
+	TradeFee      float64 `json:"trade_fee"`
+	TradeTurnover float64 `json:"trade_turnover"`
+	CreatedAt     int64   `json:"created_at"`
+	Role          string  `json:"role"`
+}
+
+type WSMatchOrder struct {
+	Op           string      `json:"op"`
+	Topic        string      `json:"topic"`
+	Ts           int64       `json:"ts"`
+	Symbol       string      `json:"symbol"`
+	ContractType string      `json:"contract_type"`
+	ContractCode string      `json:"contract_code"`
+	Status       int         `json:"status"`
+	OrderID      int64       `json:"order_id"`
+	OrderIDStr   string      `json:"order_id_str"`
+	OrderType    int         `json:"order_type"`
+	Trade        []WSMyTrade `json:"trade"`
+}
+
+type WSAccountData struct {
+	Symbol            string  `json:"symbol"`
+	MarginBalance     float64 `json:"margin_balance"`
+	MarginStatic      float64 `json:"margin_static"`
+	MarginPosition    float64 `json:"margin_position"`
+	MarginFrozen      float64 `json:"margin_frozen"`
+	MarginAvailable   float64 `json:"margin_available"`
+	ProfitReal        float64 `json:"profit_real"`
+	ProfitUnreal      float64 `json:"profit_unreal"`
+	WithdrawAvailable float64 `json:"withdraw_available"`
+	RiskRate          float64 `json:"risk_rate"`
+	LiquidationPrice  float64 `json:"liquidation_price"`
+	LeverRate         float64 `json:"lever_rate"`
+	AdjustFactor      float64 `json:"adjust_factor"`
+}
+
+type WSAccounts struct {
+	Op    string          `json:"op"`
+	Topic string          `json:"topic"`
+	Ts    int64           `json:"ts"`
+	Event string          `json:"event"`
+	Data  []WSAccountData `json:"data"`
+}
+
+type WSPositionData struct {
+	Symbol         string  `json:"symbol"`
+	ContractCode   string  `json:"contract_code"`
+	ContractType   string  `json:"contract_type"`
+	Volume         float64 `json:"volume"`
+	Available      float64 `json:"available"`
+	Frozen         float64 `json:"frozen"`
+	CostOpen       float64 `json:"cost_open"`
+	CostHold       float64 `json:"cost_hold"`
+	ProfitUnreal   float64 `json:"profit_unreal"`
+	ProfitRate     float64 `json:"profit_rate"`
+	Profit         float64 `json:"profit"`
+	PositionMargin float64 `json:"position_margin"`
+	LeverRate      float64 `json:"lever_rate"`
+	Direction      string  `json:"direction"`
+	LastPrice      float64 `json:"last_price"`
+}
+
+type WSPositions struct {
+	Op    string           `json:"op"`
+	Topic string           `json:"topic"`
+	Ts    int64            `json:"ts"`
+	Event string           `json:"event"`
+	Data  []WSPositionData `json:"data"`
+}
+
+type WSLiquidationOrders struct {
+	Op           string  `json:"op"`
+	Topic        string  `json:"topic"`
+	Ts           int64   `json:"ts"`
+	Symbol       string  `json:"symbol"`
+	ContractCode string  `json:"contract_code"`
+	Direction    string  `json:"direction"`
+	Offset       string  `json:"offset"`
+	Volume       float64 `json:"volume"`
+	Price        float64 `json:"price"`
+	CreatedAt    int64   `json:"created_at"`
+}
