@@ -144,7 +144,7 @@ func (ws *WS) run() {
 func (ws *WS) handleMsg(messageType int, msg []byte) {
 	ret := gjson.ParseBytes(msg)
 
-	//fmt.Printf("%v", string(msg))
+	//log.Printf("%v", string(msg))
 
 	if pingValue := ret.Get("ping"); pingValue.Exists() {
 		// 心跳
