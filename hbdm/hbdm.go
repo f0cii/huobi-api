@@ -101,7 +101,9 @@ func NewClient(params *ApiParameter) *Client {
 	domain := strings.Replace(params.Url, "https://", "", -1)
 	httpClient := params.HttpClient
 	if httpClient == nil {
-		httpClient = &http.Client{}
+		httpClient = &http.Client{
+			Timeout: 10 * time.Second,
+		}
 	}
 	return &Client{
 		params:     params,
