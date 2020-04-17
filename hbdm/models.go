@@ -6,6 +6,19 @@ import (
 	"strconv"
 )
 
+type Heartbeat struct {
+	Heartbeat                 int         `json:"heartbeat"`
+	EstimatedRecoveryTime     interface{} `json:"estimated_recovery_time"`
+	SwapHeartbeat             int         `json:"swap_heartbeat"`
+	SwapEstimatedRecoveryTime interface{} `json:"swap_estimated_recovery_time"`
+}
+
+type HeartbeatResult struct {
+	Status string    `json:"status"`
+	Data   Heartbeat `json:"data"`
+	Ts     int64     `json:"ts"`
+}
+
 type Order struct {
 	Symbol            string           `json:"symbol"`
 	ContractCode      string           `json:"contract_code"`

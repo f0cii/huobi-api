@@ -3,6 +3,7 @@ package hbdmswap
 import (
 	"github.com/spf13/viper"
 	"log"
+	"testing"
 )
 
 func newTestClient() *Client {
@@ -28,4 +29,14 @@ func newTestClient() *Client {
 	}
 	c := NewClient(apiParams)
 	return c
+}
+
+func TestClient_Heartbeat(t *testing.T) {
+	c := newTestClient()
+	ret, err := c.Heartbeat()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("%#v", ret)
 }

@@ -30,6 +30,16 @@ type Client struct {
 	httpClient *http.Client
 }
 
+func (c *Client) Heartbeat() (result HeartbeatResult, err error) {
+	var resp []byte
+	resp, err = util.HttpGet(c.httpClient, "https://www.hbdm.com/heartbeat/", "", nil)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(resp, &result)
+	return
+}
+
 func (c *Client) doGet(path string, params *url.Values, result interface{}) (resp []byte, err error) {
 	url := c.params.Url + path + "?" + params.Encode()
 	resp, err = util.HttpGet(

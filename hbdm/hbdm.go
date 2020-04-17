@@ -30,6 +30,16 @@ type Client struct {
 	httpClient *http.Client
 }
 
+func (c *Client) Heartbeat() (result HeartbeatResult, err error) {
+	var resp []byte
+	resp, err = util.HttpGet(c.httpClient, "https://www.hbdm.com/heartbeat/", "", nil)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(resp, &result)
+	return
+}
+
 func (c *Client) doGet(path string, params *url.Values, result interface{}) (resp []byte, err error) {
 	url := c.params.Url + path + "?" + params.Encode()
 	resp, err = util.HttpGet(
@@ -90,8 +100,7 @@ func (c *Client) sign(reqMethod, path string, postForm *url.Values) error {
 		reqMethod,
 		c.domain,
 		path,
-		postForm.Encode(),
-	)
+		postForm.Encode())
 	signature, _ := util.GetParamHmacSHA256Base64Sign(c.params.SecretKey, payload)
 	postForm.Set("Signature", signature)
 	return nil
