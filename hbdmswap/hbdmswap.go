@@ -21,6 +21,7 @@ type ApiParameter struct {
 	EnablePrivateSign  bool
 	Url                string
 	PrivateKeyPrime256 string
+	HttpClient         *http.Client
 }
 
 type Client struct {
@@ -98,9 +99,13 @@ func (c *Client) sign(reqMethod, path string, postForm *url.Values) error {
 
 func NewClient(params *ApiParameter) *Client {
 	domain := strings.Replace(params.Url, "https://", "", -1)
+	httpClient := params.HttpClient
+	if httpClient == nil {
+		httpClient = &http.Client{}
+	}
 	return &Client{
 		params:     params,
 		domain:     domain,
-		httpClient: &http.Client{},
+		httpClient: httpClient,
 	}
 }
