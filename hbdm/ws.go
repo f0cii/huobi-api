@@ -11,6 +11,8 @@ import (
 	"github.com/recws-org/recws"
 	"github.com/tidwall/gjson"
 	"log"
+	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -22,7 +24,7 @@ type WS struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
-	wsConn recws.RecConn
+	conn   recws.RecConn
 
 	wsURL         string // Public
 	cid           string // 客户端请求唯一ID
@@ -33,6 +35,21 @@ type WS struct {
 	tickerCallback func(trade *WSTicker)
 	depthCallback  func(depth *WSDepth)
 	tradeCallback  func(trade *WSTrade)
+}
+
+// SetProxy 设置代理地址
+// porxyURL:
+// socks5://127.0.0.1:1080
+// https://127.0.0.1:1080
+func (ws *WS) SetProxy(proxyURL string) (err error) {
+	var purl *url.URL
+	purl, err = url.Parse(proxyURL)
+	if err != nil {
+		return
+	}
+	log.Printf("[ws][%s] proxy url:%s", proxyURL, purl)
+	ws.conn.Proxy = http.ProxyURL(purl)
+	return
 }
 
 // SubscribeTicker 订阅 Market Ticker 数据
@@ -113,11 +130,11 @@ func (ws *WS) subscribeHandler() error {
 }
 
 func (ws *WS) sendWSMessage(msg interface{}) error {
-	return ws.wsConn.WriteJSON(msg)
+	return ws.conn.WriteJSON(msg)
 }
 
 func (ws *WS) Start() {
-	ws.wsConn.Dial(ws.wsURL, nil)
+	ws.conn.Dial(ws.wsURL, nil)
 	go ws.run()
 }
 
@@ -126,11 +143,11 @@ func (ws *WS) run() {
 	for {
 		select {
 		case <-ctx.Done():
-			go ws.wsConn.Close()
-			log.Printf("Websocket closed %s", ws.wsConn.GetURL())
+			go ws.conn.Close()
+			log.Printf("Websocket closed %s", ws.conn.GetURL())
 			return
 		default:
-			messageType, msg, err := ws.wsConn.ReadMessage()
+			messageType, msg, err := ws.conn.ReadMessage()
 			if err != nil {
 				log.Printf("Read error: %v", err)
 				time.Sleep(100 * time.Millisecond)
@@ -234,9 +251,9 @@ func NewWS(wsURL string, accessKey string, secretKey string) *WS {
 		subscriptions: make(map[string]interface{}),
 	}
 	ws.ctx, ws.cancel = context.WithCancel(context.Background())
-	ws.wsConn = recws.RecConn{
+	ws.conn = recws.RecConn{
 		KeepAliveTimeout: 10 * time.Second,
 	}
-	ws.wsConn.SubscribeHandler = ws.subscribeHandler
+	ws.conn.SubscribeHandler = ws.subscribeHandler
 	return ws
 }

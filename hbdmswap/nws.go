@@ -11,6 +11,7 @@ import (
 	"github.com/recws-org/recws"
 	"github.com/tidwall/gjson"
 	"log"
+	"net/http"
 	"net/url"
 	"strings"
 	"sync"
@@ -23,7 +24,7 @@ type NWS struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
-	wsConn recws.RecConn
+	conn   recws.RecConn
 
 	wsURL         string
 	cid           string // 客户端请求唯一ID
@@ -35,6 +36,21 @@ type NWS struct {
 	accountsCallback          func(accounts *WSAccounts)
 	positionsCallback         func(positions *WSPositions)
 	liquidationOrdersCallback func(liquidationOrders *WSLiquidationOrders)
+}
+
+// SetProxy 设置代理地址
+// porxyURL:
+// socks5://127.0.0.1:1080
+// https://127.0.0.1:1080
+func (ws *NWS) SetProxy(proxyURL string) (err error) {
+	var purl *url.URL
+	purl, err = url.Parse(proxyURL)
+	if err != nil {
+		return
+	}
+	log.Printf("[ws][%s] proxy url:%s", proxyURL, purl)
+	ws.conn.Proxy = http.ProxyURL(purl)
+	return
 }
 
 // SubscribeOrders 订阅订单成交数据
@@ -195,11 +211,11 @@ func (ws *NWS) subscribeHandler() error {
 }
 
 func (ws *NWS) sendWSMessage(msg interface{}) error {
-	return ws.wsConn.WriteJSON(msg)
+	return ws.conn.WriteJSON(msg)
 }
 
 func (ws *NWS) Start() {
-	ws.wsConn.Dial(ws.wsURL, nil)
+	ws.conn.Dial(ws.wsURL, nil)
 	go ws.run()
 }
 
@@ -208,11 +224,11 @@ func (ws *NWS) run() {
 	for {
 		select {
 		case <-ctx.Done():
-			go ws.wsConn.Close()
-			log.Printf("Websocket closed %s", ws.wsConn.GetURL())
+			go ws.conn.Close()
+			log.Printf("Websocket closed %s", ws.conn.GetURL())
 			return
 		default:
-			messageType, msg, err := ws.wsConn.ReadMessage()
+			messageType, msg, err := ws.conn.ReadMessage()
 			if err != nil {
 				log.Printf("Read error: %v", err)
 				time.Sleep(100 * time.Millisecond)
@@ -341,9 +357,9 @@ func NewNWS(wsURL string, accessKey string, secretKey string) *NWS {
 		subscriptions: make(map[string]interface{}),
 	}
 	ws.ctx, ws.cancel = context.WithCancel(context.Background())
-	ws.wsConn = recws.RecConn{
+	ws.conn = recws.RecConn{
 		KeepAliveTimeout: 10 * time.Second,
 	}
-	ws.wsConn.SubscribeHandler = ws.subscribeHandler
+	ws.conn.SubscribeHandler = ws.subscribeHandler
 	return ws
 }
