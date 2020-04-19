@@ -22,6 +22,7 @@ type ApiParameter struct {
 	Url                string
 	PrivateKeyPrime256 string
 	HttpClient         *http.Client
+	ProxyURL           string
 }
 
 type Client struct {
@@ -110,8 +111,13 @@ func NewClient(params *ApiParameter) *Client {
 	domain := strings.Replace(params.Url, "https://", "", -1)
 	httpClient := params.HttpClient
 	if httpClient == nil {
+		transport := util.CloneDefaultTransport()
+		if params.ProxyURL != "" {
+			transport.Proxy, _ = util.ParseProxy(params.ProxyURL)
+		}
 		httpClient = &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout:   10 * time.Second,
+			Transport: transport,
 		}
 	}
 	return &Client{

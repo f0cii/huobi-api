@@ -8,10 +8,31 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
+
+var (
+	DefaultTransport *http.Transport
+)
+
+func init() {
+	DefaultTransport = &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout:   5 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		IdleConnTimeout:        1 * time.Minute,
+		TLSHandshakeTimeout:    10 * time.Second,
+		ExpectContinueTimeout:  1 * time.Second,
+		DisableKeepAlives:      false,
+		MaxResponseHeaderBytes: 1 << 15,
+	}
+}
 
 func HttpGet(client *http.Client, reqUrl string, postData string, headers map[string]string) ([]byte, error) {
 	return NewHttpRequest(client, "GET", reqUrl, postData, headers)
@@ -70,4 +91,26 @@ func GetParamHmacSHA256Base64Sign(secret, params string) (string, error) {
 	}
 	signByte := mac.Sum(nil)
 	return base64.StdEncoding.EncodeToString(signByte), nil
+}
+
+func CloneDefaultTransport() *http.Transport {
+	return &http.Transport{DialContext: DefaultTransport.DialContext,
+		IdleConnTimeout:        DefaultTransport.IdleConnTimeout,
+		TLSHandshakeTimeout:    DefaultTransport.TLSHandshakeTimeout,
+		ExpectContinueTimeout:  DefaultTransport.ExpectContinueTimeout,
+		MaxResponseHeaderBytes: DefaultTransport.MaxResponseHeaderBytes,
+		Proxy:                  DefaultTransport.Proxy,
+		DisableKeepAlives:      DefaultTransport.DisableKeepAlives,
+	}
+}
+
+// "socks5://127.0.0.1:1080"
+func ParseProxy(proxyURL string) (res func(*http.Request) (*url.URL, error), err error) {
+	var purl *url.URL
+	purl, err = url.Parse(proxyURL)
+	if err != nil {
+		return
+	}
+	res = http.ProxyURL(purl)
+	return
 }
