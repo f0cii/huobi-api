@@ -324,6 +324,23 @@ type WSDepth struct {
 	Tick Tick   `json:"tick"`
 }
 
+type WSTickHF struct {
+	Asks    [][]float64 `json:"asks"`
+	Bids    [][]float64 `json:"bids"`
+	Ch      string      `json:"ch"`
+	Event   string      `json:"event"`
+	ID      int64       `json:"id"`
+	Mrid    int64       `json:"mrid"`
+	Ts      int64       `json:"ts"`
+	Version int         `json:"version"`
+}
+
+type WSDepthHF struct {
+	Ch   string   `json:"ch"`
+	Tick WSTickHF `json:"tick"`
+	Ts   int64    `json:"ts"`
+}
+
 type WSTradeItem struct {
 	Amount    int     `json:"amount"`
 	Ts        int64   `json:"ts"`

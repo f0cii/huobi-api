@@ -30,11 +30,13 @@ type WS struct {
 	cid           string // 客户端请求唯一ID
 	accessKey     string
 	secretKey     string
+	debugMode     bool
 	subscriptions map[string]interface{}
 
-	tickerCallback func(trade *WSTicker)
-	depthCallback  func(depth *WSDepth)
-	tradeCallback  func(trade *WSTrade)
+	tickerCallback  func(trade *WSTicker)
+	depthCallback   func(depth *WSDepth)
+	depthHFCallback func(depth *WSDepthHF)
+	tradeCallback   func(trade *WSTrade)
 }
 
 // SetProxy 设置代理地址
@@ -68,7 +70,20 @@ func (ws *WS) SubscribeTicker(id string, symbol string) {
 func (ws *WS) SubscribeDepth(id string, symbol string) {
 	ch := map[string]interface{}{
 		"id":  id,
-		"sub": fmt.Sprintf("market.%s.depth.step0", symbol)}
+		"sub": fmt.Sprintf("market.%s.depth.step0", symbol),
+	}
+	ws.Subscribe(id, ch)
+}
+
+// SubscribeDepthHF 订阅增量深度
+// size: 20/150 档位数，20:表示20档不合并的深度，150:表示150档不合并的深度
+// dateType: 数据类型，不填默认为全量数据，"incremental"：增量数据，"snapshot"：全量数据
+func (ws *WS) SubscribeDepthHF(id string, symbol string, size int, dateType string) {
+	ch := map[string]interface{}{
+		"id":        id,
+		"sub":       fmt.Sprintf("market.%v.depth.size_%v.high_freq", symbol, size),
+		"data_type": dateType,
+	}
 	ws.Subscribe(id, ch)
 }
 
@@ -97,6 +112,10 @@ func (ws *WS) SetTickerCallback(callback func(ticker *WSTicker)) {
 
 func (ws *WS) SetDepthCallback(callback func(depth *WSDepth)) {
 	ws.depthCallback = callback
+}
+
+func (ws *WS) SetDepthHFCallback(callback func(depth *WSDepthHF)) {
+	ws.depthHFCallback = callback
 }
 
 func (ws *WS) SetTradeCallback(callback func(trade *WSTrade)) {
@@ -167,7 +186,9 @@ func (ws *WS) run() {
 func (ws *WS) handleMsg(messageType int, msg []byte) {
 	ret := gjson.ParseBytes(msg)
 
-	//log.Printf("%v", string(msg))
+	if ws.debugMode {
+		log.Printf("%v", string(msg))
+	}
 
 	if pingValue := ret.Get("ping"); pingValue.Exists() {
 		// 心跳
@@ -180,10 +201,22 @@ func (ws *WS) handleMsg(messageType int, msg []byte) {
 	// {"id":"depth_1","subbed":"market.BTC_CQ.depth.step0","ts":1586498957314,"status":"ok"}
 
 	if chValue := ret.Get("ch"); chValue.Exists() {
-		// market.BTC_CQ.depth.step0
 		ch := chValue.String()
 		if strings.HasPrefix(ch, "market") {
-			if strings.Contains(ch, ".depth") {
+			if strings.HasSuffix(ch, ".high_freq") {
+				// market.BTC_CQ.depth.size_20.high_freq
+				var depth WSDepthHF
+				err := json.Unmarshal(msg, &depth)
+				if err != nil {
+					log.Printf("%v", err)
+					return
+				}
+
+				if ws.depthHFCallback != nil {
+					ws.depthHFCallback(&depth)
+				}
+			} else if strings.Contains(ch, ".depth") {
+				// market.BTC_CQ.depth.step0
 				var depth WSDepth
 				err := json.Unmarshal(msg, &depth)
 				if err != nil {
@@ -242,12 +275,13 @@ func (ws *WS) handlePing(ping int64) {
 // wsURL:
 // 正式地址 wss://api.hbdm.com/ws
 // 开发地址 wss://api.btcgateway.pro/ws
-func NewWS(wsURL string, accessKey string, secretKey string) *WS {
+func NewWS(wsURL string, accessKey string, secretKey string, debugMode bool) *WS {
 	ws := &WS{
 		wsURL:         wsURL,
 		cid:           shortuuid.New(),
 		accessKey:     accessKey,
 		secretKey:     secretKey,
+		debugMode:     debugMode,
 		subscriptions: make(map[string]interface{}),
 	}
 	ws.ctx, ws.cancel = context.WithCancel(context.Background())

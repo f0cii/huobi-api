@@ -18,7 +18,7 @@ func newWSTest() *WS {
 	secretKey := viper.GetString("secret_key")
 
 	wsURL := "wss://api.btcgateway.pro/ws"
-	ws := NewWS(wsURL, accessKey, secretKey)
+	ws := NewWS(wsURL, accessKey, secretKey, true)
 	return ws
 }
 
@@ -41,6 +41,18 @@ func TestWS_SubscribeDepth(t *testing.T) {
 		log.Printf("depth: %#v", depth)
 	})
 	ws.SubscribeDepth("depth_1", "BTC_CQ")
+	ws.Start()
+
+	select {}
+}
+
+func TestWS_SubscribeDepthHighFreq(t *testing.T) {
+	ws := newWSTest()
+
+	ws.SetDepthHFCallback(func(depth *WSDepthHF) {
+		log.Printf("depth: %#v", depth)
+	})
+	ws.SubscribeDepthHF("depth_1", "BTC_CQ", 20, "incremental")
 	ws.Start()
 
 	select {}
