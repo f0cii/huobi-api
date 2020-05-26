@@ -6,7 +6,7 @@ package hbdm
 import (
 	"context"
 	"fmt"
-	"github.com/frankrap/huobi-api/util"
+	"github.com/frankrap/huobi-api/utils"
 	"github.com/lithammer/shortuuid/v3"
 	"github.com/recws-org/recws"
 	"github.com/tidwall/gjson"
@@ -173,7 +173,7 @@ func (ws *WS) run() {
 				continue
 			}
 
-			msg, err = util.GzipUncompress(msg)
+			msg, err = utils.GzipUncompress(msg)
 			if err != nil {
 				continue
 			}

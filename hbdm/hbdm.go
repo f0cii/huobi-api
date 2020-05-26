@@ -2,7 +2,7 @@ package hbdm
 
 import (
 	"fmt"
-	"github.com/frankrap/huobi-api/util"
+	"github.com/frankrap/huobi-api/utils"
 	"log"
 	"net/http"
 	"net/url"
@@ -19,7 +19,7 @@ type ApiParameter struct {
 	AccessKey          string
 	SecretKey          string
 	EnablePrivateSign  bool
-	Url                string
+	BaseURL            string
 	PrivateKeyPrime256 string
 	HttpClient         *http.Client
 	ProxyURL           string
@@ -33,7 +33,7 @@ type Client struct {
 
 func (c *Client) Heartbeat() (result HeartbeatResult, err error) {
 	var resp []byte
-	resp, err = util.HttpGet(c.httpClient, "https://www.hbdm.com/heartbeat/", "", nil)
+	resp, err = utils.HttpGet(c.httpClient, "https://www.hbdm.com/heartbeat/", "", nil)
 	if err != nil {
 		return
 	}
@@ -42,8 +42,8 @@ func (c *Client) Heartbeat() (result HeartbeatResult, err error) {
 }
 
 func (c *Client) doGet(path string, params *url.Values, result interface{}) (resp []byte, err error) {
-	url := c.params.Url + path + "?" + params.Encode()
-	resp, err = util.HttpGet(
+	url := c.params.BaseURL + path + "?" + params.Encode()
+	resp, err = utils.HttpGet(
 		c.httpClient,
 		url,
 		"",
@@ -67,10 +67,10 @@ func (c *Client) doGet(path string, params *url.Values, result interface{}) (res
 
 func (c *Client) doPost(path string, params *url.Values, result interface{}) (resp []byte, err error) {
 	c.sign("POST", path, params)
-	jsonD, _ := util.ValuesToJson(*params)
+	jsonD, _ := utils.ValuesToJson(*params)
 
-	url := c.params.Url + path + "?" + params.Encode()
-	resp, err = util.HttpPost(
+	url := c.params.BaseURL + path + "?" + params.Encode()
+	resp, err = utils.HttpPost(
 		c.httpClient,
 		url,
 		string(jsonD),
@@ -102,23 +102,16 @@ func (c *Client) sign(reqMethod, path string, postForm *url.Values) error {
 		c.domain,
 		path,
 		postForm.Encode())
-	signature, _ := util.GetParamHmacSHA256Base64Sign(c.params.SecretKey, payload)
+	signature, _ := utils.GetParamHmacSHA256Base64Sign(c.params.SecretKey, payload)
 	postForm.Set("Signature", signature)
 	return nil
 }
 
 func NewClient(params *ApiParameter) *Client {
-	domain := strings.Replace(params.Url, "https://", "", -1)
+	domain := strings.Replace(params.BaseURL, "https://", "", -1)
 	httpClient := params.HttpClient
 	if httpClient == nil {
-		transport := util.CloneDefaultTransport()
-		if params.ProxyURL != "" {
-			transport.Proxy, _ = util.ParseProxy(params.ProxyURL)
-		}
-		httpClient = &http.Client{
-			Timeout:   10 * time.Second,
-			Transport: transport,
-		}
+		httpClient = utils.DefaultHttpClient(params.ProxyURL)
 	}
 	return &Client{
 		params:     params,

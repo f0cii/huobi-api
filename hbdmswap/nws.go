@@ -6,7 +6,7 @@ package hbdmswap
 import (
 	"context"
 	"fmt"
-	"github.com/frankrap/huobi-api/util"
+	"github.com/frankrap/huobi-api/utils"
 	"github.com/lithammer/shortuuid/v3"
 	"github.com/recws-org/recws"
 	"github.com/tidwall/gjson"
@@ -139,7 +139,7 @@ func (ws *NWS) setSignatureData(data map[string]string, apiKey, apiSecretKey str
 		return err
 	}
 	payload := fmt.Sprintf("%s\n%s\n%s\n%s", "GET", u.Host, u.Path, postForm.Encode())
-	sign, _ := util.GetParamHmacSHA256Base64Sign(apiSecretKey, payload)
+	sign, _ := utils.GetParamHmacSHA256Base64Sign(apiSecretKey, payload)
 	data["Signature"] = sign
 	return nil
 }
@@ -235,7 +235,7 @@ func (ws *NWS) run() {
 				continue
 			}
 
-			msg, err = util.GzipUncompress(msg)
+			msg, err = utils.GzipUncompress(msg)
 			if err != nil {
 				continue
 			}

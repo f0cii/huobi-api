@@ -24,7 +24,7 @@ func newTestClient() *Client {
 		AccessKey:          accessKey,
 		SecretKey:          secretKey,
 		EnablePrivateSign:  false,
-		Url:                baseURL,
+		BaseURL:            baseURL,
 		PrivateKeyPrime256: "",
 	}
 	c := NewClient(apiParams)

@@ -1,4 +1,4 @@
-package util
+package utils
 
 import (
 	"crypto/hmac"
@@ -32,6 +32,18 @@ func init() {
 		DisableKeepAlives:      false,
 		MaxResponseHeaderBytes: 1 << 15,
 	}
+}
+
+func DefaultHttpClient(proxyURL string) *http.Client {
+	transport := CloneDefaultTransport()
+	if proxyURL != "" {
+		transport.Proxy, _ = ParseProxy(proxyURL)
+	}
+	httpClient := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: transport,
+	}
+	return httpClient
 }
 
 func HttpGet(client *http.Client, reqUrl string, postData string, headers map[string]string) ([]byte, error) {

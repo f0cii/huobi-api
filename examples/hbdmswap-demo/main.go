@@ -16,7 +16,7 @@ func main() {
 		AccessKey:          accessKey,
 		SecretKey:          secretKey,
 		EnablePrivateSign:  false,
-		Url:                baseURL,
+		BaseURL:            baseURL,
 		PrivateKeyPrime256: "",
 	}
 	client := hbdmswap.NewClient(apiParams)
